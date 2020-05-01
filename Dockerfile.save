@@ -1,0 +1,20 @@
+FROM ubuntu:bionic
+
+ARG project_id
+ARG device_model_id
+
+ENV PROJECT_ID=$project_id
+ENV DEVICE_MODEL_ID=$device_model_id
+
+RUN useradd -u 1000 pi
+USER pi
+WORKDIR /home/pi
+
+RUN sudo apt-get install git  && \
+    git clone https://github.com/dardymek/GassistPi && \
+    sudo apt-get update && \
+    sudo chmod +x ./GassistPi/scripts/gassist-installer.sh
+
+RUN  ./GassistPi/scripts/gassist-installer.sh
+
+CMD /home/pi/env/bin/python -u /home/pi/GassistPi/src/main.py --project_id ${PROJECT_ID} --device_model_id ${DEVICE_MODEL_ID}

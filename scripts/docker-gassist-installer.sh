@@ -18,25 +18,15 @@ scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
 GIT_DIR="$(realpath $(dirname ${BASH_SOURCE[0]})/..)"
 
 # make sure we're running as the owner of the checkout directory
-RUN_AS="$(ls -ld "$scripts_dir" | awk 'NR==1 {print $3}')"
-if [ "$USER" != "$RUN_AS" ]
-then
-    echo "This script must run as $RUN_AS, trying to change user..."
-    exec sudo -u $RUN_AS $0
-fi
-clear
-echo ""
-read -r -p "Enter the your full credential file name including the path and .json extension: " credname
-echo ""
-read -r -p "Enter the your Google Cloud Console Project-Id: " projid
-echo ""
-read -r -p "Enter the modelid that was generated in the actions console: " modelid
-echo ""
-echo "Your Model-Id: $modelid Project-Id: $projid used for this project" >> /home/${USER}/modelid.txt
+# RUN_AS="$(ls -ld "$scripts_dir" | awk 'NR==1 {print $3}')"
+# if [ "$USER" != "$RUN_AS" ]
+# then
+#     echo "This script must run as $RUN_AS, trying to change user..."
+#     exec -u $RUN_AS $0
+# fi
 
-sudo apt-get update -y
-sed 's/#.*//' ${GIT_DIR}/Requirements/GassistPi-system-requirements.txt | xargs sudo apt-get install -y
-sudo pip install pyaudio
+sed 's/#.*//' ${GIT_DIR}/Requirements/GassistPi-system-requirements.txt | xargs apt-get install -y
+pip install pyaudio
 
 #Check OS Version
 echo ""
@@ -142,11 +132,11 @@ fi
 echo "Copying Snowboy files to GassistPi directory"
 echo ""
 if [[ $osversion = "Raspbian Buster" ]]; then
-  sudo \cp -f ${GIT_DIR}/src/resources/Buster-wrapper/_snowboydetect.so ${GIT_DIR}/src/_snowboydetect.so
-  sudo \cp -f ${GIT_DIR}/src/resources/Buster-wrapper/snowboydetect.py ${GIT_DIR}/src/snowboydetect.py
+  cp -f ${GIT_DIR}/src/resources/Buster-wrapper/_snowboydetect.so ${GIT_DIR}/src/_snowboydetect.so
+  cp -f ${GIT_DIR}/src/resources/Buster-wrapper/snowboydetect.py ${GIT_DIR}/src/snowboydetect.py
 elif [[ $osversion = "Raspbian Stretch" ]]; then
-  sudo \cp -f ${GIT_DIR}/src/resources/Stretch-wrapper/_snowboydetect.so ${GIT_DIR}/src/_snowboydetect.so
-  sudo \cp -f ${GIT_DIR}/src/resources/Stretch-wrapper/snowboydetect.py ${GIT_DIR}/src/snowboydetect.py
+  cp -f ${GIT_DIR}/src/resources/Stretch-wrapper/_snowboydetect.so ${GIT_DIR}/src/_snowboydetect.so
+  cp -f ${GIT_DIR}/src/resources/Stretch-wrapper/snowboydetect.py ${GIT_DIR}/src/snowboydetect.py
 fi
 
 if [[ $osversion != "Raspbian Stretch" ]] && [[ $osversion != "Raspbian Buster" ]]; then
@@ -155,60 +145,40 @@ if [[ $osversion != "Raspbian Stretch" ]] && [[ $osversion != "Raspbian Buster" 
   echo "Installing Swig"
   echo ""
   if [ ! -d /home/${USER}/programs/libraries/swig/ ]; then
-    sudo mkdir -p programs/libraries/ && cd programs/libraries
-    sudo git clone https://github.com/swig/swig.git
+    mkdir -p programs/libraries/ && cd programs/libraries
+    git clone https://github.com/swig/swig.git
   fi
   cd /home/${USER}/programs/libraries/swig/
-  sudo ./autogen.sh
-  sudo ./configure
-  sudo make
-  sudo make install
+  ./autogen.sh
+  ./configure
+  make
+  make install
   echo ""
   echo "Compiling custom Snowboy Python3 wrapper"
   echo ""
   cd ~/programs
   if [ ! -d /home/${USER}/programs/snowboy/ ]; then
-    sudo git clone https://github.com/Kitt-AI/snowboy.git
+    git clone https://github.com/Kitt-AI/snowboy.git
   fi
   cd /home/${USER}/programs/snowboy/swig/Python3
-  sudo make
+  make
 
   if [ -e /home/${USER}/programs/snowboy/swig/Python3/_snowboydetect.so ]; then
     echo "Copying Snowboy files to GassistPi directory"
-    sudo \cp -f ./_snowboydetect.so ${GIT_DIR}/src/_snowboydetect.so
-    sudo \cp -f ./snowboydetect.py ${GIT_DIR}/src/snowboydetect.py
+    cp -f ./_snowboydetect.so ${GIT_DIR}/src/_snowboydetect.so
+    cp -f ./snowboydetect.py ${GIT_DIR}/src/snowboydetect.py
   else
     echo "Something has gone wrong while compiling the wrappers. Try again or go through the errors above"
   fi
 fi
 
 cd /home/${USER}/
-echo ""
-echo ""
-echo "Changing particulars in service files"
-
-if [[ $devmodel = "armv7" ]];then
-  echo ""
-  echo ""
-  echo "Changing particulars in service files for Ok-Google hotword"
-  sed -i '/pushbutton.py/d' ${GIT_DIR}/systemd/gassistpi.service
-  sed -i 's/created-project-id/'$projid'/g' ${GIT_DIR}/systemd/gassistpi.service
-  sed -i 's/saved-model-id/'$modelid'/g' ${GIT_DIR}/systemd/gassistpi.service
-else
-  echo ""
-  echo ""
-  echo "Changing particulars in service files for Pushbutton/Custom-wakeword"
-  sed -i '/main.py/d' ${GIT_DIR}/systemd/gassistpi.service
-  sed -i 's/created-project-id/'$projid'/g' ${GIT_DIR}/systemd/gassistpi.service
-  sed -i 's/saved-model-id/'$modelid'/g' ${GIT_DIR}/systemd/gassistpi.service
-fi
-
-sed -i 's/__USER__/'${USER}'/g' ${GIT_DIR}/systemd/gassistpi.service
 
 python3 -m venv env
 env/bin/python -m pip install --upgrade pip setuptools wheel
 source env/bin/activate
 
+pip install --upgrade requests
 pip install -r ${GIT_DIR}/Requirements/GassistPi-pip-requirements.txt
 
 if [[ $board = "Raspberry" ]] && [[ $osversion != "OSMC Stretch" ]];then
@@ -224,8 +194,6 @@ fi
 pip install google-assistant-grpc==0.3.0
 pip install google-assistant-sdk==0.6.0
 pip install google-assistant-sdk[samples]==0.6.0
-google-oauthlib-tool --scope https://www.googleapis.com/auth/assistant-sdk-prototype \
-          --scope https://www.googleapis.com/auth/gcm \
-          --save --headless --client-secrets $credname
+
 echo ""
 echo "Finished installing Google Assistant......."

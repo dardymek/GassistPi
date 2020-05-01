@@ -1,5 +1,7 @@
-
+src/__pycache__
 scripts/gassist-installer-pi-zero.sh
 scripts/gassist-installer-pi-zero.sh
 src/snowboy.py
+src/_snowboydetect.so
+src/snowboydetect.py
 scripts/gassist-installer-pi3.sh

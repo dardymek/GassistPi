@@ -37,12 +37,12 @@ Clickatell:
 
 # Deezer user credentials
 Deezer:
-  Deezer_Control: 'Enabled'
+  Deezer_Control: 'Disabled'
   User_id: '2247762504'
 
 # DIY-HUE declarations
 DIYHUE:
-  DIYHUE_Control: 'Enabled'
+  DIYHUE_Control: 'Disabled'
 
 # Domoticz declarations
 Domoticz:
@@ -68,7 +68,7 @@ Domoticz:
 
 #ESP control declarations. Follow a similar pattern to add your own list.
 ESP:
-  ESP_Control: 'Enabled'
+  ESP_Control: 'Disabled'
   IP: 'xxxxxxxxxxxx' #Enter your ESP's IP here.
   devicename:
     - 'Device 1'
@@ -81,7 +81,7 @@ ESP:
 
 #Streaming songs from Gaana.com
 Gaana:
-  Gaana_Control: 'Enabled'
+  Gaana_Control: 'Disables'
   Playlist:
     # Enter your desired playlists
     - 'https://gaana.com/playlist/gaana-dj-bollywood-top-50-1'
